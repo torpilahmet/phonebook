@@ -19,4 +19,5 @@ Route::get('/phonrbook/{name', function (){
     return redirect('/');
 })->where('name', '[A-Za-z]+');
 
+Route::post('getData','PhonebookController@getData');
 Route::resource('phonebook','PhonebookController');

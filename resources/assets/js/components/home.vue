@@ -15,32 +15,58 @@
             </p>
         </div>
 
-        <a class="panel-block"><span class="column is-9">marksheet</span>
-            <span class="panel-icon column is-1"><i class="has-text-danger fa fa-trash" aria-hidden="true"></i></span>
-            <span class="panel-icon column is-1"><i class="has-text-success fa fa-edit" aria-hidden="true"></i></span>
-            <span class="panel-icon column is-1"><i class="has-text-primary fa fa-eye" aria-hidden="true"></i></span>
+        <a class="panel-block" v-for="item, key in lists">
+            <span class="column">{{ item.id }}</span>
+            <span class="column is-3">{{ item.name }}</span>
+            <span class="column is-4">{{ item.email }}</span>
+            <span class="column is-3">{{ item.phone }}</span>
+
+            <span class="panel-icon column"><i class="has-text-danger fa fa-trash" aria-hidden="true"></i></span>
+            <span class="panel-icon column"><i class="has-text-success fa fa-edit" aria-hidden="true" @click="openUpdate(key)"></i></span>
+            <span class="panel-icon column"><i class="has-text-primary fa fa-eye" aria-hidden="true" @click="openShow(key)"></i></span>
         </a>
 
     </nav>
         <Add :openmodal="addActive" @closeRequest="close"></Add>
+        <Show :openmodal="showActive" @closeRequest="close"></Show>
+        <Update :openmodal="updateActive" @closeRequest="close"></Update>
     </div>
 </template>
 
 <script>
     let Add = require('./add.vue');
+    let Show = require('./Show.vue');
+    let Update = require('./Update.vue');
     export default {
-        components:{Add},
+        components:{Add,Show,Update},
         data(){
             return{
-                addActive : ''
+                addActive : '',
+                showActive : '',
+                updateActive : '',
+                lists : {},
+                errors : {}
             }
+        },
+        mounted(){
+            axios.post('/getData')
+                .then((response)=>this.lists = response.data)
+                .catch((error) => this.errors = error.response.data.errors)
         },
         methods:{
             openAdd(){
-                this.addActive = 'is-active'
+                this.addActive = 'is-active';
+            },
+            openShow(key){
+                this.$children[1].list = this.lists[key];
+                this.showActive = 'is-active';
+            },
+            openUpdate(key){
+                this.$children[2].list = this.lists[key];
+                this.updateActive = 'is-active';
             },
             close(){
-                this.addActive= ''
+                this.addActive = this.showActive = this.updateActive = ''
             }
         }
     }
