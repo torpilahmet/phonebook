@@ -6,22 +6,26 @@
             <button class="button is-link is-outlined" @click="openAdd">
                 Add New
             </button>
+            <span class="is-pulled-right" v-if="loading">
+                <i class="fa fa-refresh fa-spin fa-2x fa-fw"></i>
+                <span class="sr-only">Loading...</span>
+            </span>
         </p>
 
         <div class="panel-block">
             <p class="control has-icons-left">
-                <input class="input is-small" type="text" placeholder="search">
+                <input class="input is-small" type="text" placeholder="search" v-model="searchQuery">
                 <span class="icon is-small is-left"><i class="fa fa-search"></i></span>
             </p>
         </div>
 
-        <a class="panel-block" v-for="item, key in lists">
-            <span class="column">{{ item.id }}</span>
+        <a class="panel-block" v-for="item, key in temp">
+
             <span class="column is-3">{{ item.name }}</span>
             <span class="column is-4">{{ item.email }}</span>
             <span class="column is-3">{{ item.phone }}</span>
 
-            <span class="panel-icon column"><i class="has-text-danger fa fa-trash" aria-hidden="true"></i></span>
+            <span class="panel-icon column"><i class="has-text-danger fa fa-trash" aria-hidden="true" @click="del(key,item.id)"></i></span>
             <span class="panel-icon column"><i class="has-text-success fa fa-edit" aria-hidden="true" @click="openUpdate(key)"></i></span>
             <span class="panel-icon column"><i class="has-text-primary fa fa-eye" aria-hidden="true" @click="openShow(key)"></i></span>
         </a>
@@ -45,12 +49,32 @@
                 showActive : '',
                 updateActive : '',
                 lists : {},
-                errors : {}
+                errors : {},
+                loading: false,
+                searchQuery: '',
+                temp: ''
+            }
+        },
+        watch:{
+            searchQuery(){
+                if(this.searchQuery.length >0){
+                    this.temp = this.lists.filter((item) => {
+//
+                        return Object.keys(item).some((key) => {
+                            let string = String(item[key])
+                            return string.toLowerCase().indexOf(this.searchQuery.toLowerCase())>-1
+//                            console.log(string)
+                        })
+                    });
+//                    console.log(result)
+                } else {
+                    this.temp = this.lists
+                }
             }
         },
         mounted(){
             axios.post('/getData')
-                .then((response)=>this.lists = response.data)
+                .then((response)=>this.lists = this.temp = response.data)
                 .catch((error) => this.errors = error.response.data.errors)
         },
         methods:{
@@ -58,15 +82,26 @@
                 this.addActive = 'is-active';
             },
             openShow(key){
-                this.$children[1].list = this.lists[key];
+                this.$children[1].list = this.temp[key];
                 this.showActive = 'is-active';
             },
             openUpdate(key){
-                this.$children[2].list = this.lists[key];
+                this.$children[2].list = this.temp[key];
                 this.updateActive = 'is-active';
             },
             close(){
                 this.addActive = this.showActive = this.updateActive = ''
+            },
+            del(key, id){
+
+                if(confirm("Silmek İstediğinize Emin Misiniz..?")){
+                    this.loading = !this.loading
+                    axios.delete(`/phonebook/${id}`)
+                        .then((response)=>{this.lists.splice(key,1);this.loading = !this.loading})
+                        .catch((error) => this.errors = error.response.data.errors)
+                }
+                console.log(`${key} ${id}`)
+
             }
         }
     }

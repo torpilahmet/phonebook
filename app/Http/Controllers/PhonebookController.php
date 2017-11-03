@@ -48,7 +48,7 @@ class PhonebookController extends Controller
 
         $pb->save();
 
-
+        return $pb;
     }
 
     /**
@@ -99,6 +99,6 @@ class PhonebookController extends Controller
      */
     public function destroy(Phonebook $phonebook)
     {
-        //
+        Phonebook::where('id',$phonebook->id)->delete();
     }
 }
